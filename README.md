@@ -128,10 +128,18 @@ Here is a non-exhaustive list of some of the functions that are assumed to be co
 
 ### uri
 
+## qcheck stuff
 
+A big part of this is dogfooding the [qcheck](https://github.com/mooreryan/gleam_qcheck) library.  So, here are some things that I have noticed about that library when writing these tests.
 
-
-
+- Some more generators would be nice
+  - `list_with_length` -- generate lists of a given length
+  - `list_non_empty` -- generate non-empty lists
+  - `list_matrix` -- generate a "list of list" style matrix
+  - Include edge cases in the int generators (e.g., 0, 1, -1, etc.)
+- It would be nice to have some sort of mechanism similar to gleeunit's [should.equal](https://hexdocs.pm/gleeunit/gleeunit/should.html#equal).
+  - When a property fails, you do see the original input and shrunk input, but you don't see the result/output of applying those inputs to whatever you are testing.
+  - So, when a test fails, if I don't know what the result of that would be, I have to go and add print debugging to see what's going on.  Not ideal.
 
 
 
