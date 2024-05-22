@@ -2,7 +2,9 @@
 
 Property-based testing of Gleam's [stdlib](https://github.com/gleam-lang/stdlib).
 
-When writing these tests, I tried not to assume *too* much of the stdlib was already correct; however, sometimes this "rule" is broken to simplify things.
+*Note!* When writing these tests, I tried not to assume *too* much of the stdlib was already correct; however, sometimes this "rule" is broken to simplify things.
+
+*Note!*  If you are looking at this project for some ideas or examples about how to do property-based testing, you may notice the almost complete lack of example-based testing.  In most projects, however, it is a very good idea to combine property-based tests with example-based tests (potentially also including regressions in your examples).  A set of well chosen examples will help to anchor your properties and make sure behavior expectations are met.  In the case of this project, the stdlib already has an extensive example-based [test suite](https://github.com/gleam-lang/stdlib/tree/main/test), and there is no reason to duplicate that effort here.  
 
 ## Progress
 
