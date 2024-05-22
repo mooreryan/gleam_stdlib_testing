@@ -1,15 +1,12 @@
 import gleam/dict.{type Dict}
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/order.{Eq, Gt, Lt}
 import gleam/set
-import gleam/string
 import gleeunit/should
 import qcheck/generator as gen
 import qcheck/qtest.{given}
-import qcheck/qtest/config
 
 // list.length
 //
