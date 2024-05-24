@@ -40,8 +40,8 @@ Here is a list of functions tested so far, organized by module.  Lists are from 
 - [x] combination_pairs
 - [x] combinations
 - [x] concat
-- [ ] contains
-- [ ] drop
+- [x] contains
+- [x] drop
 - [ ] drop_while
 - [ ] each
 - [ ] filter
@@ -129,6 +129,10 @@ Here is a non-exhaustive list of some of the functions that are assumed to be co
 ### string_builder
 
 ### uri
+
+## Hacking
+
+- If a test uses the `test_spec` to control timeouts, ensure that the name of that test ends in `test_`, unless it is part of a test group.
 
 ## qcheck stuff
 

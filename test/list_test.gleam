@@ -7,6 +7,7 @@ import gleam/set
 import gleeunit/should
 import qcheck/generator as gen
 import qcheck/qtest.{given}
+import qcheck_gleeunit_utils/test_spec
 
 // list.length
 //
@@ -57,7 +58,11 @@ pub fn reverse_append__test() {
   == list.append(list.reverse(b), list.reverse(a))
 }
 
-pub fn reverse_concat__test() {
+pub fn reverse_concat__test_() {
+  // This test will sometimes timeout, so use the `test_spec` to increase the
+  // timeout.
+  let seconds = 30
+  use <- test_spec.make_with_timeout(seconds)
   use #(a, b, c, d) <- given(four_lists())
 
   // Reversing the concatentation is the same as concatenating reversed lists in
@@ -152,7 +157,7 @@ pub fn list_append__preserves_elements_of_both_lists__test() {
 }
 
 pub fn splitting_then_appending_round_trips__test() {
-  use #(list, index) <- given(list_with_index())
+  use #(list, index) <- given(non_empty_list_with_index())
   let #(l1, l2) = list.split(list, index)
   list.append(l1, l2) == list
 }
@@ -176,7 +181,9 @@ pub fn empty_lists_dont_affect_flattening__test() {
 }
 
 pub fn concat_and_flatten_are_the_same__test() {
-  let gen = gen.tuple6(list(), list(), list(), list(), list(), list())
+  // Keep these small to avoid timeouts.
+  let list = gen.list_generic(gen.int_uniform(), 0, 5)
+  let gen = gen.tuple6(list, list, list, list, list, list)
 
   use #(l1, l2, l3, l4, l5, l6) <- given(gen)
   let ll = [l1, l2, l3, l4, l5, l6]
@@ -390,6 +397,76 @@ pub fn prepend_always_increases_length_by_one__test() {
   list.length(list.prepend(l, n)) == list.length(l) + 1
 }
 
+// list.contains
+
+pub fn contains_is_always_false_for_empty_lists__test() {
+  use n <- given(gen.int_uniform())
+  !list.contains([], n)
+}
+
+pub fn a_list_always_contains_the_inserted_element__test() {
+  let gen = gen.tuple2(non_empty_list_with_index(), gen.int_uniform())
+
+  use #(#(l, i), n) <- given(gen)
+
+  let #(l1, l2) = list.split(l, i)
+  let l = list.concat([l1, [n], l2])
+  list.contains(l, n)
+}
+
+pub fn concat_doesnt_change_result_of_contains__test() {
+  let gen =
+    gen.tuple3(
+      gen.list_generic(gen.int_uniform(), 0, 10),
+      gen.list_generic(gen.int_uniform(), 0, 10),
+      gen.int_uniform(),
+    )
+
+  use #(l1, l2, n) <- given(gen)
+
+  let l2 = [n, ..l2]
+  let assert True = list.contains(l2, n)
+
+  list.contains(list.append(l1, l2), n)
+}
+
+// list.drop
+
+pub fn if_n_is_gte_length_then_drop_returns_empty_list__test() {
+  let gen = gen.tuple2(list_with_length(), gen.int_uniform())
+  use #(#(l, len), i) <- given(gen)
+
+  let assert [] = list.drop(l, len + int.absolute_value(i))
+  True
+}
+
+pub fn for_in_bounds_n_drop_always_drops_n_items__test() {
+  let gen = {
+    use #(l, len) <- gen.bind(non_empty_list_with_length())
+    gen.tuple3(
+      gen.return(l),
+      gen.return(len),
+      gen.int_uniform_inclusive(0, len - 1),
+    )
+  }
+
+  use #(l, original_length, n) <- given(gen)
+  let l2 = list.drop(l, n)
+  list.length(l2) + n == original_length
+}
+
+pub fn dropping_zero_items_returns_original_list__test() {
+  use l <- given(list())
+  list.drop(l, 0) == l
+}
+
+pub fn remaining_elements_after_drop_match_second_half_of_split__test() {
+  use #(l, i) <- qtest.given(non_empty_list_with_index())
+  let l1 = list.drop(l, i)
+  let #(_, l2) = list.split(l, i)
+  l1 == l2
+}
+
 // utils
 //
 // 
@@ -405,7 +482,7 @@ fn sorted_list() {
 }
 
 /// Generate a list along with an index that is guaranteed to be in bounds.
-fn list_with_index() {
+fn non_empty_list_with_index() {
   gen.small_strictly_positive_int()
   |> gen.bind(fn(length) {
     gen.tuple2(
@@ -416,6 +493,16 @@ fn list_with_index() {
 }
 
 fn list_with_length() {
+  gen.small_positive_or_zero_int()
+  |> gen.bind(fn(length) {
+    gen.tuple2(
+      gen.list_generic(gen.int_uniform(), length, length),
+      gen.return(length),
+    )
+  })
+}
+
+fn non_empty_list_with_length() {
   gen.small_strictly_positive_int()
   |> gen.bind(fn(length) {
     gen.tuple2(
